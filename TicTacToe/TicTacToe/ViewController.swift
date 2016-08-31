@@ -25,23 +25,31 @@ class ViewController: UIViewController {
             boardState[sender.tag - 1] = activePlayer;
             activePlayer = activePlayer == 1 ? 2 : 1
             
-            checkWinner()
+            checkForWinAndDraw()
         }
     }
     
     //Check if there is a winner comparing the board state with all the possible winning states
-    private func checkWinner(){
+    private func checkForWinAndDraw(){
+        var draw:Bool = true
+        var endGameMessage = "Draw!"
         for winnerState in winningStates{
-            if boardState[winnerState[0]] != 0 && boardState[winnerState[0]] == boardState[winnerState[1]] && boardState[winnerState[1]] == boardState[winnerState[2]]{
+            if boardState[winnerState[0]] != 0 && boardState[winnerState[0]] == boardState[winnerState[1]] && boardState[winnerState[1]] == boardState[winnerState[2]] {
                 print("We have a winner")
                 if boardState[winnerState[0]] == 1{
-                    gameOverLabel.text = "Noughts has won";
+                    endGameMessage = "Noughts has won";
                 }else{
-                    gameOverLabel.text = "Crosses has won";
+                    endGameMessage = "Crosses has won";
                 }
-                displayWinningMessage()
+                displayEndGameMessage(endGameMessage)
                 gameActive = false;
+                draw = false;
             }
+            
+        }
+        if draw && !boardState.contains(0) {
+            displayEndGameMessage(endGameMessage)
+            gameActive = false;
         }
     }
     
@@ -61,7 +69,8 @@ class ViewController: UIViewController {
         }
     }
     
-    private func displayWinningMessage(){
+    private func displayEndGameMessage(message:String){
+        gameOverLabel.text = message
         gameOverLabel.hidden = false
         playAgainButton.hidden = false
         UIView.animateWithDuration(0.5, animations: { () -> Void in
