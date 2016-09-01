@@ -3,7 +3,7 @@
 //  TicTacToeUITests
 //
 //  Created by Leonardo Guimarães Diniz on 8/31/16.
-//  Copyright © 2016 Motoboy. All rights reserved.
+//  Copyright © 2016 Leogdiniz. All rights reserved.
 //
 
 import XCTest

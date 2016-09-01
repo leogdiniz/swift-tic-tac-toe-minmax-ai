@@ -3,7 +3,7 @@
 //  TicTacToe
 //
 //  Created by Leonardo Guimarães Diniz on 8/31/16.
-//  Copyright © 2016 Motoboy. All rights reserved.
+//  Copyright © 2016 Leogdiniz. All rights reserved.
 //
 
 import UIKit
@@ -14,54 +14,67 @@ class ViewController: UIViewController {
     @IBOutlet var playAgainButton: UIButton!
     
     var gameActive = true
-    var activePlayer = 1;//1 = O, 2 = X
-    var boardState = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-    var winningStates = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]]
+    var board:Board = Board()
+    var AI:TicTacToeAI = TicTacToeAI()
 
+	//Executed everyt time the player makes a move
     @IBAction func buttonPressed(sender: UIButton) {
-        if boardState[sender.tag - 1] == 0 && gameActive{
-            sender.setTitle(activePlayer == 1 ? "O" : "X", forState: .Normal)
+        if board.getMove(sender.tag - 1) == 0 && gameActive{
+            sender.setTitle("0", forState: .Normal)
             sender.setTitleColor(.blackColor(), forState: .Normal)
-            boardState[sender.tag - 1] = activePlayer;
-            activePlayer = activePlayer == 1 ? 2 : 1
-            
-            checkForWinAndDraw()
+            self.board.addMove(Player.HUMAN, atPosition: sender.tag - 1)
+			//Stop the game until the computer makes it's move
+			gameActive = false;
+			//Executes computer's move after 0.3 seconds just to give an impression it's thinking
+			dispatch_after(
+				dispatch_time(
+					DISPATCH_TIME_NOW,
+					Int64(0.3 * Double(NSEC_PER_SEC))
+				),
+				dispatch_get_main_queue(),
+				{self.playComputerMove()}
+			)
         }
     }
-    
-    //Check if there is a winner comparing the board state with all the possible winning states
-    private func checkForWinAndDraw(){
-        var draw:Bool = true
-        var endGameMessage = "Draw!"
-        for winnerState in winningStates{
-            if boardState[winnerState[0]] != 0 && boardState[winnerState[0]] == boardState[winnerState[1]] && boardState[winnerState[1]] == boardState[winnerState[2]] {
-                print("We have a winner")
-                if boardState[winnerState[0]] == 1{
-                    endGameMessage = "Noughts has won";
-                }else{
-                    endGameMessage = "Crosses has won";
-                }
-                displayEndGameMessage(endGameMessage)
-                gameActive = false;
-                draw = false;
-            }
-            
-        }
-        if draw && !boardState.contains(0) {
-            displayEndGameMessage(endGameMessage)
-            gameActive = false;
-        }
-    }
-    
+
+	//Restarts the game
     @IBAction func restartGame(sender: AnyObject) {
         gameActive = true
-        activePlayer = 1;//1 = O, 2 = X
-        boardState = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        board.resetBoardState()
         hideButtons()
         hideWinningMessage()
         
     }
-    
+	
+	//Makes AI's move
+    private func playComputerMove(){
+        let nextMove = self.AI.nextMove(self.board, player: Player.COMPUTER)
+        if(nextMove >= 0){
+            let button: UIButton = self.view.viewWithTag(nextMove + 1) as! UIButton
+            button.setTitle("X", forState: .Normal)
+            button.setTitleColor(.blackColor(), forState: .Normal)
+            self.board.addMove(Player.COMPUTER, atPosition: nextMove)
+        }
+        let status: TicTacToeAI.gameStatus = self.board.checkGameStatus();
+        if(status != TicTacToeAI.gameStatus.IN_PROGRESS){
+            switch status {
+            case TicTacToeAI.gameStatus.COMPUTER_WIN:
+                self.displayEndGameMessage("Computer win!")
+            case TicTacToeAI.gameStatus.HUMAN_WIN:
+                self.displayEndGameMessage("You win!")
+            case TicTacToeAI.gameStatus.DRAW:
+                self.displayEndGameMessage("Draw!")
+            default:
+                break
+            }
+            
+            gameActive = false;
+		}else{
+			gameActive = true;
+		}
+    }
+	
+	//Clean the board
     private func hideButtons() {
         for i in 1...9 {
             let button: UIButton = view.viewWithTag(i) as! UIButton
@@ -93,7 +106,6 @@ class ViewController: UIViewController {
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
 
 
